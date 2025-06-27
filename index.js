@@ -1,23 +1,33 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import * as serviceWorkerRegistration from './serviceWorkerRegistration';
-import reportWebVitals from './reportWebVitals';
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+const geoRoutes = require("./routes/geoRoutes");
+const userRoutes = require("./routes/userRoutes");
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://cra.link/PWA
-serviceWorkerRegistration.unregister();
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// ROUTES
+app.use("/api/geo", geoRoutes);       // for /api/countries etc.
+app.use("/api/user", userRoutes); // for /api/user POST
+
+// Fallback route for testing
+app.get("/", (req, res) => {
+  res.send("Backend is working!");
+});
+
+// Connect to MongoDB and start server
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("✅ MongoDB Connected");
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running at http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
